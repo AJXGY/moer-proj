@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-04-30T00:46:32.942521+00:00",
+  "hostname": "ICT109",
+  "platform": "Linux-5.15.0-164-generic-x86_64-with-glibc2.35",
+  "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+  "cwd": "/home/o_mabin",
+  "packages": {
+    "torch": true,
+    "torch_musa": true,
+    "transformers": true,
+    "accelerate": true
+  },
+  "tools": {
+    "mthreads-gmi": "/usr/bin/mthreads-gmi",
+    "nvidia-smi": "/usr/bin/nvidia-smi",
+    "docker": "/usr/bin/docker"
+  },
+  "commands": {
+    "uname": {
+      "command": [
+        "uname",
+        "-a"
+      ],
+      "returncode": 0,
+      "stdout": "Linux ICT109 5.15.0-164-generic #174-Ubuntu SMP Fri Nov 14 20:25:16 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux",
+      "stderr": ""
+    },
+    "lscpu": {
+      "command": [
+        "lscpu"
+      ],
+      "returncode": 0,
+      "stdout": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           52 bits physical, 57 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  128\nOn-line CPU(s) list:                     0-127\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Xeon(R) Gold 6430\nCPU family:                              6\nModel:                                   143\nThread(s) per core:                      2\nCore(s) per socket:                      32\nSocket(s):                               2\nStepping:                                8\nCPU max MHz:                             3400.0000\nCPU min MHz:                             800.0000\nBogoMIPS:                                4200.00\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 cat_l2 cdp_l3 invpcid_single intel_ppin cdp_l2 ssbd mba ibrs ibpb stibp ibrs_enhanced tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local split_lock_detect avx_vnni avx512_bf16 wbnoinvd dtherm ida arat pln pts hwp hwp_act_window hwp_epp hwp_pkg_req avx512vbmi umip pku ospke waitpkg avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg tme avx512_vpopcntdq la57 rdpid bus_lock_detect cldemote movdiri movdir64b enqcmd fsrm md_clear serialize tsxldtrk pconfig arch_lbr amx_bf16 avx512_fp16 amx_tile amx_int8 flush_l1d arch_capabilities ibpb_exit_to_user\nVirtualization:                          VT-x\nL1d cache:                               3 MiB (64 instances)\nL1i cache:                               2 MiB (64 instances)\nL2 cache:                                128 MiB (64 instances)\nL3 cache:                                120 MiB (2 instances)\nNUMA node(s):                            2\nNUMA node0 CPU(s):                       0-31,64-95\nNUMA node1 CPU(s):                       32-63,96-127\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl and seccomp\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace",
+      "stderr": ""
+    },
+    "ip": {
+      "command": [
+        "ip",
+        "-brief",
+        "addr"
+      ],
+      "returncode": 0,
+      "stdout": "lo               UNKNOWN        127.0.0.1/8 ::1/128 \nens1f0           UP             10.208.130.109/24 192.168.5.11/24 fe80::6efe:54ff:fe9b:9f3c/64 \nens5f0           DOWN           \nens5f1           DOWN           \nens1f1           DOWN           \nens5f2           DOWN           \nens5f3           DOWN           \ndocker0          UP             172.17.0.1/16 fe80::42:b7ff:fec3:1734/64 \nvethd28a863@if92 UP             fe80::8cd9:fff:fead:fde0/64 \nwg0              UNKNOWN        192.168.30.7/32 \nkube-ipvs0       DOWN           172.16.7.162/32 172.16.89.163/32 172.16.70.37/32 172.16.67.91/32 172.16.16.165/32 172.16.56.106/32 172.16.245.168/32 172.16.0.1/32 172.16.123.195/32 172.16.69.27/32 172.16.207.13/32 172.16.58.83/32 172.16.126.41/32 172.16.158.36/32 172.16.123.37/32 172.16.193.162/32 172.16.216.149/32 172.16.186.200/32 172.16.225.100/32 172.16.85.41/32 172.16.170.153/32 172.16.133.224/32 172.16.246.87/32 172.16.29.140/32 172.16.248.208/32 172.16.134.213/32 172.16.245.171/32 172.16.121.208/32 172.16.130.43/32 172.16.176.1/32 172.16.96.248/32 172.16.177.156/32 172.16.164.159/32 172.16.109.245/32 172.16.217.155/32 172.16.52.11/32 172.16.1.6/32 172.16.99.122/32 172.16.199.140/32 172.16.113.235/32 172.16.152.253/32 172.16.181.194/32 172.16.227.105/32 172.16.45.129/32 10.10.11.1/32 172.16.0.10/32 172.16.97.114/32 172.16.75.86/32 172.16.15.198/32 172.16.68.40/32 172.16.38.99/32 172.16.190.7/32 172.16.241.37/32 172.16.28.112/32 172.16.226.75/32 172.16.210.181/32 172.16.176.0/32 172.16.105.172/32 172.16.73.26/32 172.16.20.238/32 172.16.118.219/32 172.16.140.131/32 172.16.97.68/32 172.16.245.159/32 172.16.226.153/32 172.16.144.255/32 172.16.228.232/32 172.16.136.116/32 172.16.35.122/32 172.16.217.254/32 172.16.253.229/32 172.16.52.138/32 172.16.26.27/32 172.16.223.53/32 172.16.186.108/32 10.10.11.0/32 172.16.51.20/32 172.16.74.18/32 172.16.239.169/32 172.16.248.45/32 172.16.183.47/32 172.16.192.88/32 172.16.168.211/32 172.16.221.2/32 172.16.161.55/32 172.16.241.76/32 172.16.72.48/32 172.16.110.157/32 172.16.135.62/32 172.16.101.115/32 172.16.232.113/32 172.16.140.174/32 172.16.158.142/32 172.16.114.6/32 172.16.200.111/32 172.16.48.182/32 172.16.150.116/32 172.16.56.228/32 172.16.90.174/32 172.16.9.40/32 172.16.201.239/32 172.16.19.99/32 172.16.41.182/32 172.16.53.77/32 172.16.194.127/32 172.16.6.36/32 172.16.201.145/32 172.16.196.111/32 172.16.156.87/32 172.16.131.169/32 172.16.175.144/32 172.16.140.156/32 172.16.225.141/32 172.16.114.209/32 172.16.60.171/32 172.16.139.89/32 172.16.57.7/32 172.16.136.140/32 172.16.40.183/32 172.16.215.131/32 172.16.48.6/32 172.16.131.139/32 172.16.99.120/32 172.16.82.143/32 172.16.50.129/32 172.16.109.71/32 172.16.49.61/32 172.16.111.193/32 172.16.16.194/32 172.16.227.232/32 172.16.225.251/32 172.16.48.127/32 172.16.150.2/32 172.16.194.115/32 172.16.137.111/32 172.16.226.30/32 172.16.249.157/32 172.16.44.235/32 172.16.114.39/32 172.16.201.141/32 172.16.168.85/32 172.16.34.3/32 172.16.217.24/32 172.16.71.89/32 172.16.153.156/32 172.16.19.224/32 172.16.62.184/32 172.16.148.51/32 172.16.185.151/32 172.16.81.244/32 172.16.236.153/32 172.16.199.153/32 172.16.192.189/32 172.16.229.249/32 172.16.241.160/32 172.16.183.70/32 172.16.172.207/32 172.16.169.123/32 172.16.22.58/32 172.16.196.53/32 172.16.8.230/32 172.16.248.204/32 172.16.126.201/32 172.16.27.51/32 172.16.105.85/32 172.16.168.32/32 172.16.211.16/32 172.16.162.129/32 172.16.253.54/32 172.16.81.118/32 172.16.222.92/32 172.16.43.131/32 172.16.141.40/32 172.16.188.174/32 172.16.192.100/32 172.16.197.72/32 172.16.83.8/32 172.16.232.108/32 172.16.179.84/32 172.16.213.115/32 172.16.12.125/32 172.16.49.24/32 172.16.197.192/32 172.16.116.46/32 172.16.151.111/32 172.16.101.251/32 172.16.216.30/32 172.16.107.32/32 172.16.198.111/32 172.16.22.134/32 \nvxlan.calico     UNKNOWN        172.17.84.0/32 fe80::64d6:54ff:fe26:b301/64 \ncali608fc1a909d@if3 UP             fe80::ecee:eeff:feee:eeee/64 \ncalidd097318eec@if3 UP             fe80::ecee:eeff:feee:eeee/64 \ncali090ca6969d4@if3 UP             fe80::ecee:eeff:feee:eeee/64 \ncali62d4f496f7f@if3 UP             fe80::ecee:eeff:feee:eeee/64 \ncali12ed8343906@if3 UP             fe80::ecee:eeff:feee:eeee/64 \ncali7d64f912e1a@if3 UP             fe80::ecee:eeff:feee:eeee/64 \ncali5774a47dd33@if3 UP             fe80::ecee:eeff:feee:eeee/64 \ncalid846d12eaf1@if3 UP             fe80::ecee:eeff:feee:eeee/64 \ncali231fd338ff7@if3 UP             fe80::ecee:eeff:feee:eeee/64 \ncalief92cd4a43a@if3 UP             fe80::ecee:eeff:feee:eeee/64",
+      "stderr": ""
+    },
+    "mthreads-gmi": {
+      "command": [
+        "mthreads-gmi"
+      ],
+      "returncode": 0,
+      "stdout": "Thu Apr 30 00:46:33 2026\n---------------------------------------------------------------\n    mthreads-gmi:2.1.0           Driver Version:3.1.0-rc4.2.0-server-Ubuntu\n---------------------------------------------------------------\nID   Name           |PCIe                |%GPU  Mem            \n     Device Type    |Pcie Lane Width     |Temp  MPC Capable    \n                                         |      ECC Mode       \n+-------------------------------------------------------------+\n0    MTT S3000      |00000000:09:00.0    |0%    5584MiB(32768MiB)\n     Physical       |16x(16x)            |37C   YES            \n                                         |      N/A            \n+-------------------------------------------------------------+\n1    MTT S3000      |00000000:38:00.0    |0%    2283MiB(32768MiB)\n     Physical       |16x(16x)            |38C   YES            \n                                         |      N/A            \n---------------------------------------------------------------\n\n---------------------------------------------------------------\nProcesses:\nID   PID       Process name                         GPU Memory\n                                                         Usage\n+-------------------------------------------------------------+\n0    2540178   python3                                  666MiB\n+-------------------------------------------------------------+\n1    2540178   python3                                    0MiB\n---------------------------------------------------------------",
+      "stderr": ""
+    },
+    "nvidia-smi": {
+      "command": [
+        "nvidia-smi"
+      ],
+      "returncode": 9,
+      "stdout": "NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.",
+      "stderr": ""
+    }
+  },
+  "accelerator": {
+    "backend": "musa",
+    "device_count": 2,
+    "devices": [
+      "musa:0",
+      "musa:1"
+    ],
+    "torch_available": true,
+    "torch_musa_available": true
+  },
+  "criteria": {
+    "single_card_visible": true,
+    "dual_card_visible": true,
+    "python_dependencies_ready": true
+  }
+}

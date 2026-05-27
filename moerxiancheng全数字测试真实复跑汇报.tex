@@ -1,0 +1,216 @@
+\documentclass[UTF8,a4paper,11pt]{ctexart}
+
+\usepackage[margin=1.8cm]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tabularx}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+\urlstyle{same}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.2em,topsep=0.2em}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\emergencystretch=3em
+\sloppy
+
+\title{moerxiancheng-clj-xyj-proj 数字目录测试指标真实复跑汇报}
+\author{Codex 真实复跑汇总}
+\date{2026-05-07}
+
+\begin{document}
+\maketitle
+
+\section{总结论}
+
+本次按项目内所有以数字命名的测试目录逐项核查并真实执行了一遍可用套件，覆盖
+\path{clj-proj/5.1.5}、\path{clj-proj/5.1.6}、\path{clj-proj/5.1.11}、
+\path{clj-proj/5.2.3}、\path{clj-proj/5.2.6}、\path{clj-proj/5.2.9}、
+\path{clj-proj/5.2.14}、\path{xyj/5.1.6}、\path{xyj/5.1.12}、
+\path{xyj/5.2.15} 共 10 个有效数字目录。全部套件均已真实复跑并通过，所有已定义指标均完成。
+
+本次汇报按用户要求采用 TP 口径：有 TP 套件或 TP 补充验证的项目，以 TP=2 结果作为结论；个别历史脚本会顺带执行 dual/PP 分支，本文仅保留其作为脚本执行记录，不把 PP 作为本次指标结论。推理一致性类项目本身没有 PP/TP 切分定义，按其单卡/双卡运行一致性指标判断通过。
+
+\section{复跑范围与口径}
+
+\begin{itemize}
+  \item 复跑日期：2026-05-07。
+  \item 目录范围：仅统计仓库内真实存在的数字目录；忽略误拷贝路径和非数字任务目录。
+  \item 运行口径：算子/通信/训练时间模型均优先采用 TP 或双卡算子验证结果；不使用 PP 作为本次结论。
+  \item 真实性说明：下表中列出的脚本均已在本机实际执行。若首次沙箱运行因 MUSA 驱动不可见失败，则已重新以真实环境执行并以成功 artifact 为准。
+\end{itemize}
+
+\section{真实复跑记录}
+
+\begin{longtable}{L{1.7cm} L{3.0cm} L{4.4cm} L{5.9cm}}
+\toprule
+编号 & 目录 & 实际执行命令 & 本次复跑产物与结果 \\
+\midrule
+\endfirsthead
+\toprule
+编号 & 目录 & 实际执行命令 & 本次复跑产物与结果 \\
+\midrule
+\endhead
+5.1.5 & \path{clj-proj/5.1.5} & \texttt{bash run\_515\_suite.sh} & 通过。最新产物：\path{artifacts/20260507T171359Z}；单卡/双卡各 3 条输出均成功。 \\
+5.1.6 & \path{clj-proj/5.1.6} & \texttt{bash run\_516\_suite.sh} & 通过。最新产物：\path{artifacts/20260507T170859Z}；TP=2 训练分支成功。 \\
+5.1.11 & \path{clj-proj/5.1.11} & \texttt{bash run\_5111\_suite.sh} & 通过。主报告 \path{artifacts/20260415T094800Z/validation_report.json} 为 all passed；TP 补充报告 \path{tp_supplement/validation_report_tp2.json} 通过。 \\
+5.2.3 & \path{clj-proj/5.2.3} & \texttt{bash run\_523\_suite.sh} & 通过。生成 \path{space_model_results.json}；所有算子误差均在 20\% 阈值内。 \\
+5.2.6 & \path{clj-proj/5.2.6} & \texttt{bash run\_526\_suite.sh} & 通过。生成 \path{space_model_results.json}；所有验证点误差均在 20\% 阈值内。 \\
+5.2.9 & \path{clj-proj/5.2.9} & \texttt{bash run\_529\_suite.sh} & 通过。生成 \path{space_model_results.json}；通信预测使用留一验证，误差不再出现自校准 0。 \\
+5.2.14 & \path{clj-proj/5.2.14} & \texttt{bash run\_5214\_tp\_suite.sh} & 通过。最新产物：\path{artifacts/20260507T170301Z}；TP=2 训练时间模型通过。 \\
+5.1.6 & \path{xyj/5.1.6} & \texttt{bash run\_516\_suite.sh} & 通过。最新产物：\path{artifacts/20260507T171106Z}；TP=2 训练分支成功。 \\
+5.1.12 & \path{xyj/5.1.12} & \texttt{bash run\_512\_real\_suite.sh} & 通过。最新产物：\path{artifacts/20260507T171521Z}；运行时验证 overall pass。 \\
+5.2.15 & \path{xyj/5.2.15} & \texttt{bash run\_5215\_tp\_suite.sh} & 通过。最新产物：\path{artifacts/20260507T171535Z}；TP=2 推理时间模型通过。 \\
+\bottomrule
+\end{longtable}
+
+\section{指标完成总览}
+
+\begin{longtable}{L{1.8cm} L{3.0cm} L{5.1cm} L{5.1cm}}
+\toprule
+编号 & 项目方向 & 指标完成情况 & 本次结论 \\
+\midrule
+\endfirsthead
+\toprule
+编号 & 项目方向 & 指标完成情况 & 本次结论 \\
+\midrule
+\endhead
+clj 5.1.5 & 推理运行验证 & A--F 均已完成；单卡和双卡推理输出数量均为 3/3。 & 完成。无 PP 结论需求，按运行一致性通过。 \\
+clj 5.1.6 & 训练运行验证 & A--F 均已完成；训练为 adapter/LoRA 风格参数更新；TP=2 分支成功保存 checkpoint。 & 完成。TP=2 平均 step 时间 7693.14 ms。 \\
+clj 5.1.11 & 训练执行模型/DAG & 主验证 18 项通过；TP 补充 8 项通过；TP=2、PP=1，含 allreduce 通信节点。 & 完成。采用 TP 补充模型作为本次结论。 \\
+clj 5.2.3 & 计算算子空间模型 & A--F 均完成；10 个单卡/双卡验证误差全部低于 20\%。 & 完成。最大误差 6.42\%。 \\
+clj 5.2.6 & 显存/带宽算子模型 & A--F 均完成；校准点与验证点分离，验证误差全部低于 20\%。 & 完成。最大验证误差 8.89\%。 \\
+clj 5.2.9 & 通信算子模型 & A--F 均完成；sendrecv/allreduce 均真实复跑；留一预测避免 0 误差自校准。 & 完成。最大验证误差 8.31\%。 \\
+clj 5.2.14 & TP 训练时间模型 & A--F 均完成；TP=2，micro-batch 1/2/4 全部低于 20\%。 & 完成。最大误差 5.10\%。 \\
+xyj 5.1.6 & 训练运行验证 & A--F 均完成；TP=2 分支成功，单卡与历史 dual 分支也随脚本完成。 & 完成。TP=2 平均 step 时间 7633.06 ms。 \\
+xyj 5.1.12 & 推理执行模型验证 & A--H 均完成；single/dual runtime validation 均成功。 & 完成。overall pass。 \\
+xyj 5.2.15 & TP 推理时间模型 & A--F 均完成；TP=2，micro-batch 1/2/4 全部低于 20\%。 & 完成。最大误差 0.83\%。 \\
+\bottomrule
+\end{longtable}
+
+\section{关键结果明细}
+
+\subsection{clj-proj/5.1.5}
+
+本目录为推理运行验证。最新真实复跑产物为 \path{clj-proj/5.1.5/artifacts/20260507T171359Z}。单卡 summary 显示 success=true、outputs\_count=3、num\_prompts=3、num\_devices=1；双卡 summary 显示 success=true、outputs\_count=3、num\_prompts=3、num\_devices=2。任务进展 A--F 均标记完成。
+
+\subsection{clj-proj/5.1.6}
+
+本目录为训练运行验证，脚本会执行 single、dual、TP 三个分支；本次按 TP 结论汇报。最新真实复跑产物为 \path{clj-proj/5.1.6/artifacts/20260507T170859Z}。TP 分支 parallel\_mode=tp，steps=2，trainable params=65552，avg\_step\_ms=7693.14，checkpoint 为 \path{tp/tp_adapter_checkpoint.pt}。single 和 dual 分支也执行成功；其中 dual 分支为历史 PP 形态，不作为本次 TP 结论。
+
+\subsection{clj-proj/5.1.11}
+
+本目录为训练执行模型与验证报告。主验证报告 \path{clj-proj/5.1.11/artifacts/20260415T094800Z/validation_report.json} 显示 all\_passed=true，共 18 项检查通过。TP 补充目录 \path{clj-proj/5.1.11/tp_supplement} 中，\path{validation_report_tp2.json} 显示 all\_passed=true，共 8 项检查通过；\path{training_execution_model_tp2.json} 使用 tensor\_parallel\_size=2、pipeline\_parallel\_size=1，并包含 TP allreduce 通信节点。因此本次按 TP 补充模型判定完成。
+
+\subsection{clj-proj/5.2.3}
+
+本目录为计算算子空间模型。真实复跑生成的 \path{space_model_results.json} 时间戳为 2026-05-07T16:44:49Z，all\_within\_20\_percent=true。关键验证误差如下：
+
+\begin{center}
+\begin{tabular}{L{4.2cm} L{3.2cm} L{3.2cm}}
+\toprule
+算子 & 单卡误差 & 双卡误差 \\
+\midrule
+MLP Up GEMM & 5.71\% & 5.64\% \\
+MLP Gate GEMM & 3.82\% & 5.50\% \\
+MLP Down GEMM & 4.00\% & 4.42\% \\
+FlashAttention & 0.82\% & 0.72\% \\
+Attention Output GEMM & 5.31\% & 6.42\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{clj-proj/5.2.6}
+
+本目录为显存/带宽相关算子模型。真实复跑生成的 \path{space_model_results.json} 时间戳为 2026-05-07T16:45:55Z，all\_within\_20\_percent=true。校准点与验证点已分离；本次统计验证点最大误差为 8.89\%，满足 20\% 阈值。
+
+\subsection{clj-proj/5.2.9}
+
+本目录为通信算子模型。真实复跑生成的 \path{space_model_results.json} 时间戳为 2026-05-07T16:55:25Z，all\_within\_20\_percent=true。通信实现采用 gloo + CPU staging + MUSA device buffer 口径；MCCL 探测仅作为环境说明。本次通信预测代码采用留一验证，所有通信样本均作为验证点参与误差计算，避免了过去自校准导致的 0 误差。
+
+\begin{center}
+\begin{tabular}{L{3.6cm} L{2.6cm} L{2.6cm} L{2.6cm} L{2.6cm}}
+\toprule
+通信算子 & 64 MB & 128 MB & 192 MB & 256 MB \\
+\midrule
+sendrecv & 8.31\% & 1.57\% & 1.53\% & 2.47\% \\
+allreduce & 0.37\% & 0.02\% & 0.13\% & 0.16\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{clj-proj/5.2.14}
+
+本目录为 TP 训练时间模型。最新真实复跑产物为 \path{clj-proj/5.2.14/artifacts/20260507T170301Z}，结果文件为 \path{tp_time_model_results.json}，时间戳为 2026-05-07T17:04:34Z，all\_within\_20\_percent=true。TP=2 下三组配置均通过：
+
+\begin{center}
+\begin{tabular}{L{3.0cm} L{3.0cm} L{3.0cm} L{2.5cm}}
+\toprule
+配置 & 实测 T\_real & 预测 T\_sim & 误差 \\
+\midrule
+cfg\_tp2\_mb1 & 98.935 ms & 93.893 ms & 5.10\% \\
+cfg\_tp2\_mb2 & 197.452 ms & 187.758 ms & 4.91\% \\
+cfg\_tp2\_mb4 & 394.364 ms & 375.532 ms & 4.78\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{xyj/5.1.6}
+
+本目录为训练运行验证。最新真实复跑产物为 \path{xyj/5.1.6/artifacts/20260507T171106Z}。TP 分支 parallel\_mode=tp，avg\_step\_ms=7633.06；single 分支 avg\_step\_ms=6617.26；脚本中的 dual 分支也执行成功但不作为本次 TP 结论。
+
+\subsection{xyj/5.1.12}
+
+本目录为推理执行模型与运行时验证。最新真实复跑产物为 \path{xyj/5.1.12/artifacts/20260507T171521Z}。运行时验证 summary 显示 overall\_pass=true、single\_success=true、dual\_success=true、single\_outputs\_count=3、dual\_outputs\_count=3。实测结果报告 \texttt{artifacts/5.1.12实测结果.md} 综合判定为通过。
+
+\subsection{xyj/5.2.15}
+
+本目录为 TP 推理时间模型。最新真实复跑产物为 \path{xyj/5.2.15/artifacts/20260507T171535Z}，结果文件为 \path{tp_time_model_results.json}，时间戳为 2026-05-07T17:17:05Z，all\_within\_20\_percent=true。TP=2 下三组配置均通过：
+
+\begin{center}
+\begin{tabular}{L{3.0cm} L{3.0cm} L{3.0cm} L{2.5cm}}
+\toprule
+配置 & 实测 T\_real & 预测 T\_sim & 误差 \\
+\midrule
+cfg\_tp2\_mb1 & 97.976 ms & 97.165 ms & 0.83\% \\
+cfg\_tp2\_mb2 & 194.027 ms & 194.330 ms & 0.16\% \\
+cfg\_tp2\_mb4 & 388.610 ms & 388.661 ms & 0.01\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{环境与风险说明}
+
+\begin{itemize}
+  \item \path{clj-proj/5.2.3} 复跑时出现 FlashAttention fast kernel 依赖 mp $\ge$ 2.2、当前 mp 2.1 的提示；脚本已走兼容路径并成功完成，指标仍通过。
+  \item \path{clj-proj/5.2.9} 当前以 gloo + CPU staging + MUSA buffer 作为通信实测口径，不把 MCCL 探测失败作为任务失败。
+  \item \path{xyj/5.2.15} 的 Dashboard TP 主链路在 MUSA DTensor 上存在 \texttt{No backend type associated with device type musa} 限制；本次采用该目录内 TP 补充套件的真实产物作为验证依据。
+  \item \path{clj-proj/5.1.6} 与 \path{xyj/5.1.6} 的历史脚本会同时跑 single/dual/TP。本文保留 dual 执行成功信息，但最终结论均取 TP 分支。
+\end{itemize}
+
+\section{产物索引}
+
+\begin{itemize}
+  \item \path{clj-proj/5.1.5/artifacts/20260507T171359Z}
+  \item \path{clj-proj/5.1.6/artifacts/20260507T170859Z}
+  \item \path{clj-proj/5.1.11/artifacts/20260415T094800Z/validation_report.json}
+  \item \path{clj-proj/5.1.11/tp_supplement/validation_report_tp2.json}
+  \item \path{clj-proj/5.2.3/space_model_results.json}
+  \item \path{clj-proj/5.2.6/space_model_results.json}
+  \item \path{clj-proj/5.2.9/space_model_results.json}
+  \item \path{clj-proj/5.2.14/artifacts/20260507T170301Z/tp_time_model_results.json}
+  \item \path{xyj/5.1.6/artifacts/20260507T171106Z}
+  \item \path{xyj/5.1.12/artifacts/20260507T171521Z}
+  \item \path{xyj/5.2.15/artifacts/20260507T171535Z/tp_time_model_results.json}
+\end{itemize}
+
+\end{document}

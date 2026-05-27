@@ -1,0 +1,83 @@
+[
+  {
+    "id": "op_copy_hidden_64mb",
+    "name": "Hidden State Device Copy 64MB",
+    "kind": "copy",
+    "shape": [8, 1024, 4096],
+    "dtype": "float16",
+    "llama_component": "residual.hidden_state_copy"
+  },
+  {
+    "id": "op_copy_hidden_128mb",
+    "name": "Hidden State Device Copy 128MB",
+    "kind": "copy",
+    "shape": [16, 1024, 4096],
+    "dtype": "float16",
+    "llama_component": "residual.hidden_state_copy"
+  },
+  {
+    "id": "op_copy_hidden_256mb",
+    "name": "Hidden State Device Copy 256MB",
+    "kind": "copy",
+    "shape": [32, 1024, 4096],
+    "dtype": "float16",
+    "llama_component": "residual.hidden_state_copy"
+  },
+  {
+    "id": "op_slice_kv_128mb",
+    "name": "KV Cache Slice 128MB",
+    "kind": "slice",
+    "shape": [32, 16, 1024, 128],
+    "slice": [0, 32, 0, 8, 0, 1024, 0, 128],
+    "dtype": "float16",
+    "llama_component": "attention.kv_cache_slice"
+  },
+  {
+    "id": "op_slice_kv_256mb",
+    "name": "KV Cache Slice 256MB",
+    "kind": "slice",
+    "shape": [32, 32, 1024, 128],
+    "slice": [0, 32, 0, 16, 0, 1024, 0, 128],
+    "dtype": "float16",
+    "llama_component": "attention.kv_cache_slice"
+  },
+  {
+    "id": "op_slice_kv_512mb",
+    "name": "KV Cache Slice 512MB",
+    "kind": "slice",
+    "shape": [32, 64, 1024, 128],
+    "slice": [0, 32, 0, 32, 0, 1024, 0, 128],
+    "dtype": "float16",
+    "llama_component": "attention.kv_cache_slice"
+  },
+  {
+    "id": "op_cat_heads_8mb",
+    "name": "Attention Head Concat 8MB",
+    "kind": "cat",
+    "shape_a": [16, 1024, 128],
+    "shape_b": [16, 1024, 128],
+    "dim": 0,
+    "dtype": "float16",
+    "llama_component": "attention.head_concat"
+  },
+  {
+    "id": "op_cat_heads_16mb",
+    "name": "Attention Head Concat 16MB",
+    "kind": "cat",
+    "shape_a": [32, 1024, 128],
+    "shape_b": [32, 1024, 128],
+    "dim": 0,
+    "dtype": "float16",
+    "llama_component": "attention.head_concat"
+  },
+  {
+    "id": "op_cat_heads_32mb",
+    "name": "Attention Head Concat 32MB",
+    "kind": "cat",
+    "shape_a": [64, 1024, 128],
+    "shape_b": [64, 1024, 128],
+    "dim": 0,
+    "dtype": "float16",
+    "llama_component": "attention.head_concat"
+  }
+]

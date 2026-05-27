@@ -6,6 +6,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+**/.graph_cache/
 .venv/
 venv/
 env/
@@ -14,8 +15,20 @@ env/
 *.log
 *.out
 *.err
+*.bak_*
 *.mudmp
 core.*
+
+# LaTeX build outputs
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.run.xml
+*.synctex.gz
+*.toc
 
 # Large local model files
 clj-proj/model/
@@ -26,6 +39,8 @@ clj-proj/model/
 artifacts/
 latest_artifact.txt
 latest_*_artifact.txt
+**/latest_artifact.txt
+**/latest_*_artifact.txt
 
 # Local copied/misplaced paths
 home/

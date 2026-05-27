@@ -1,0 +1,58 @@
+[
+  {
+    "id": "op_sendrecv_64mb",
+    "name": "Send/Recv RoundTrip 64MB",
+    "kind": "send_recv",
+    "bytes": 67108864,
+    "dtype": "float16"
+  },
+  {
+    "id": "op_sendrecv_128mb",
+    "name": "Send/Recv RoundTrip 128MB",
+    "kind": "send_recv",
+    "bytes": 134217728,
+    "dtype": "float16"
+  },
+  {
+    "id": "op_sendrecv_192mb",
+    "name": "Send/Recv RoundTrip 192MB",
+    "kind": "send_recv",
+    "bytes": 201326592,
+    "dtype": "float16"
+  },
+  {
+    "id": "op_sendrecv_256mb",
+    "name": "Send/Recv RoundTrip 256MB",
+    "kind": "send_recv",
+    "bytes": 268435456,
+    "dtype": "float16"
+  },
+  {
+    "id": "op_allreduce_64mb",
+    "name": "AllReduce 64MB",
+    "kind": "all_reduce",
+    "bytes": 67108864,
+    "dtype": "float16"
+  },
+  {
+    "id": "op_allreduce_128mb",
+    "name": "AllReduce 128MB",
+    "kind": "all_reduce",
+    "bytes": 134217728,
+    "dtype": "float16"
+  },
+  {
+    "id": "op_allreduce_192mb",
+    "name": "AllReduce 192MB",
+    "kind": "all_reduce",
+    "bytes": 201326592,
+    "dtype": "float16"
+  },
+  {
+    "id": "op_allreduce_256mb",
+    "name": "AllReduce 256MB",
+    "kind": "all_reduce",
+    "bytes": 268435456,
+    "dtype": "float16"
+  }
+]

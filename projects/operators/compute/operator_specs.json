@@ -1,0 +1,53 @@
+[
+  {
+    "id": "op_mlp_up",
+    "name": "MLP Up GEMM",
+    "kind": "matmul",
+    "m": 2048,
+    "k": 4096,
+    "n": 14336,
+    "dtype": "float16",
+    "llama_component": "mlp.up_proj"
+  },
+  {
+    "id": "op_mlp_gate",
+    "name": "MLP Gate GEMM",
+    "kind": "matmul",
+    "m": 2048,
+    "k": 4096,
+    "n": 14336,
+    "dtype": "float16",
+    "llama_component": "mlp.gate_proj"
+  },
+  {
+    "id": "op_mlp_down",
+    "name": "MLP Down GEMM",
+    "kind": "matmul",
+    "m": 2048,
+    "k": 14336,
+    "n": 4096,
+    "dtype": "float16",
+    "llama_component": "mlp.down_proj"
+  },
+  {
+    "id": "op_flash_attention",
+    "name": "FlashAttention",
+    "kind": "flash_attention",
+    "batch": 1,
+    "heads": 32,
+    "seq_len": 2048,
+    "head_dim": 128,
+    "dtype": "float16",
+    "llama_component": "attention.flash_attention"
+  },
+  {
+    "id": "op_attn_o_proj",
+    "name": "Attention Output Proj GEMM",
+    "kind": "matmul",
+    "m": 2048,
+    "k": 4096,
+    "n": 4096,
+    "dtype": "float16",
+    "llama_component": "attention.o_proj"
+  }
+]
