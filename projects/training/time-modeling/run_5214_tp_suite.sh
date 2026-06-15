@@ -2,8 +2,11 @@
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
-export LD_LIBRARY_PATH=/home/o_mabin/.local/gfortran/usr/lib/x86_64-linux-gnu:/home/o_mabin/.local/openblas/usr/lib/x86_64-linux-gnu/openblas-pthread:/home/o_mabin/.local/musa_toolkits/musa_toolkits_4.2.0/lib:/home/o_mabin/.local/mudnn/mudnn/lib:/usr/local/musa/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+export MUSA_HOME="${MUSA_HOME:-/home/o_mabin/.local/musa_toolkits/musa_toolkits_4.2.0}"
+export MUSA_PATH="${MUSA_PATH:-${MUSA_HOME}}"
+export PATH="${MUSA_HOME}/bin:${PATH}"
+export LD_LIBRARY_PATH=${MUSA_HOME}/lib:/home/o_mabin/.local/gfortran/usr/lib/x86_64-linux-gnu:/home/o_mabin/.local/openblas/usr/lib/x86_64-linux-gnu/openblas-pthread:/home/o_mabin/.local/mudnn/mudnn/lib:/usr/local/musa/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 
-python3 benchmark_tp_train_time.py
+python3 benchmark_tp_train_time.py --parallel-scope "${MOER_PARALLEL_SCOPE:-all}" "$@"
 python3 fit_tp_time_model.py
 python3 summarize_tp_results.py

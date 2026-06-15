@@ -1,17 +1,15 @@
 # Inference Time Modeling
 
-Canonical entry point for MooreThreads inference runtime measurement and TP time modeling.
+Inference timing/modeling project for MooreThreads.
 
-## Files
+## Card Modes
 
-- Historical directory: `../../../xyj/5.2.15/`
-- Benchmark: `benchmark_tp_infer_time.py`
-- Fit model: `fit_tp_time_model.py`
-- Summary: `summarize_tp_results.py`
-- Historical notes: `TASK_README_5.2.15.md`
+- Single-card: use configs with `world_size=1`, `tp_size=1`, or `nproc_per_node=1`.
+- Multi-card: use TP/multi-process configs with `world_size=2`, `tp_size=2`, or `nproc_per_node=2`.
 
 ## Run
 
 ```bash
 ../../../scripts/run_inference_moorethreads_smoke.sh
 ```
+

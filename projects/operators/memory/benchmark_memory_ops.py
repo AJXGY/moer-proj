@@ -11,7 +11,7 @@ import torch_musa  # noqa: F401
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T101500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T101500Z"))
 RUNS = 5
 WARMUPS = 4
 INNER_LOOPS = 20
@@ -28,12 +28,12 @@ def dtype_from_name(name):
 
 def bytes_for_spec(spec):
     dtype_size = 2 if spec["dtype"] == "float16" else 4
-    if spec["kind"] in ("copy", "slice"):
+    if spec["kind"] in ("copy", "slice", "data_copy", "slice_copy", "reshape_transpose"):
         numel = 1
         for d in spec["shape"]:
             numel *= d
         return numel * dtype_size
-    if spec["kind"] == "cat":
+    if spec["kind"] in ("cat", "concat"):
         numel = 1
         for d in spec["shape_a"]:
             numel *= d
@@ -51,33 +51,41 @@ def prepare_state(spec, device, scale=1.0):
     torch.musa.set_device(device)
     dtype = dtype_from_name(spec["dtype"])
     musa_device = f"musa:{device}"
-    if spec["kind"] == "copy":
+    if spec["kind"] in ("copy", "data_copy"):
         shape = scaled_shape(spec["shape"], 0, scale)
         x = torch.randn(shape, device=musa_device, dtype=dtype)
         y = torch.empty_like(x)
         return {"x": x, "y": y}
-    if spec["kind"] == "slice":
+    if spec["kind"] in ("slice", "slice_copy"):
         shape = scaled_shape(spec["shape"], 1, scale)
         x = torch.randn(shape, device=musa_device, dtype=dtype)
         return {"x": x, "slice_stop": max(1, shape[1] // 2)}
-    if spec["kind"] == "cat":
+    if spec["kind"] in ("cat", "concat"):
         shape_a = scaled_shape(spec["shape_a"], 0, scale)
         shape_b = scaled_shape(spec["shape_b"], 0, scale)
         a = torch.randn(shape_a, device=musa_device, dtype=dtype)
         b = torch.randn(shape_b, device=musa_device, dtype=dtype)
         return {"a": a, "b": b}
+    if spec["kind"] == "reshape_transpose":
+        shape = scaled_shape(spec["shape"], 0, scale)
+        x = torch.randn(shape, device=musa_device, dtype=dtype)
+        reshape = list(spec["reshape"])
+        reshape[0] = max(1, int(reshape[0] * scale))
+        return {"x": x, "reshape": reshape, "permute": tuple(spec["permute"])}
     raise ValueError(f"unsupported kind={spec['kind']}")
 
 
 def run_prepared_op(spec, state):
-    if spec["kind"] == "copy":
+    if spec["kind"] in ("copy", "data_copy"):
         state["y"].copy_(state["x"])
         return state["y"]
-    if spec["kind"] == "slice":
+    if spec["kind"] in ("slice", "slice_copy"):
         # Materialize the slice so the benchmark measures real memory traffic, not only view creation.
         return state["x"][:, : state["slice_stop"], :, :].contiguous()
-    if spec["kind"] == "cat":
+    if spec["kind"] in ("cat", "concat"):
         return torch.cat([state["a"], state["b"]], dim=spec["dim"])
+    if spec["kind"] == "reshape_transpose":
+        return state["x"].reshape(state["reshape"]).permute(state["permute"]).contiguous()
     raise ValueError(f"unsupported kind={spec['kind']}")
 
 

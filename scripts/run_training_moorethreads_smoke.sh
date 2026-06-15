@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_run_common.sh"
+REPO_ROOT="$(moer_repo_root)"
+moer_setup_ld_library_path
+moer_prepare_run_dir "${REPO_ROOT}" "training-all"
 
-exec bash "${REPO_ROOT}/projects/training/time-modeling/run_5214_tp_suite.sh" "$@"
+export MOER_PARALLEL_SCOPE=all
+bash "${REPO_ROOT}/projects/training/time-modeling/run_5214_tp_suite.sh" "$@"

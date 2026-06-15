@@ -1,8 +1,0 @@
-torch>=1.9.0
-numpy>=1.19.0
-pyyaml>=5.3
-tqdm>=4.50.0
-# MUSA 相关依赖（如果需要）
-# torch-musa>=版本号
-# 分布式训练库
-# mccl>=版本号

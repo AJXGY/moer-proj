@@ -1,17 +1,8 @@
-# moerxiancheng-clj-xyj-proj
+# moer-proj
 
-Research and task workspace for `clj-proj`, `xyj`, and related benchmarking or modeling scripts.
+Clean MooreThreads benchmark project layout.
 
-## Included
-
-- Source code and task documents
-- Config files and runnable scripts
-- Charts and summaries that are suitable for version control
-- LoRA-style training/inference validation summaries for MUSA runs
-
-## Normalized Layout
-
-Use these paths as the stable entry points for new work:
+## Layout
 
 ```text
 projects/
@@ -20,43 +11,34 @@ projects/
     memory/
     compute/
   training/
-    runtime-validation/
-    lora-runtime-validation/
-    model-structure/
     time-modeling/
   inference/
-    runtime-validation/
-    model-structure/
     time-modeling/
-  shared/
-    train-infer-estimation/
-  reports/
 
 scripts/
-  check_project_layout.sh
-  run_inference_runtime_moorethreads.sh
-  run_inference_model_structure_moorethreads.sh
+  run_training_single_moorethreads.sh
+  run_training_multi_moorethreads.sh
   run_operator_comm_moorethreads.sh
   run_operator_mem_moorethreads.sh
   run_operator_compute_moorethreads.sh
-  run_training_runtime_moorethreads.sh
-  run_training_lora_moorethreads.sh
-  run_training_model_structure_moorethreads.sh
   run_training_moorethreads_smoke.sh
+  run_inference_single_moorethreads.sh
+  run_inference_multi_moorethreads.sh
   run_inference_moorethreads_smoke.sh
+results/
 ```
 
-The dated `clj-proj/5.x` and `xyj/5.x` directories now only keep compatibility wrappers, ignored caches, or local model files. The source projects live under `projects/`, and `scripts/` provides repository-level runnable entry points.
+## Scope
 
-## Current Training Scope
+- `operators/`: three operator classes, communication, memory, and compute.
+- `training/time-modeling/`: training single-card and multi-card timing/modeling configs.
+- `inference/time-modeling/`: inference single-card and multi-card timing/modeling configs.
+- `projects/shared/train-infer-estimation/`: minimal shared runtime used by operator, training, and inference scripts.
 
-- Training runtime tests use LoRA-style lightweight fine-tuning rather than full 8B parameter updates.
-- The Llama3.1-8B backbone is loaded for real forward computation, while only low-rank adapter/probe parameters are updated.
-- This keeps the tests aligned with the LoRA training requirement and avoids excessive full fine-tuning runtime.
+Every top-level script creates a timestamped result folder under `results/` and writes a `run.log` plus generated artifacts.
 
-## Excluded
+Model weights are not included. Put local weights at:
 
-- Local model weights
-- Generated runtime artifacts and logs
-- Python cache files
-- Crash dump files
+```text
+clj-proj/model/Meta-Llama-3.1-8B
+```

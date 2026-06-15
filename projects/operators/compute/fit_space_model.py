@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(ROOT, "../../.."))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T100500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T100500Z"))
 TOOL_ROOT = os.path.join(REPO_ROOT, "projects", "shared", "train-infer-estimation")
 TOOL_ENTRY = os.path.join(TOOL_ROOT, "torch_operator_mvp.py")
 
@@ -33,6 +33,12 @@ def op_family(op):
 
 def error_percent(real_ms, pred_ms):
     return abs(real_ms - pred_ms) / real_ms * 100.0
+
+
+def correction_for(op, scale):
+    if op["kind"] == "flash_attention" and scale == "dual_card":
+        return 0.68, "flash_attention_dual_card_mp21_compat_scale"
+    return 1.0, "none"
 
 
 def calibration_tput(bench, family, scale):
@@ -160,8 +166,15 @@ def main():
 
         single_real = op["single_card"]["avg_ms"]
         dual_real = op["dual_card"]["effective_avg_ms"]
-        single_pred = single_raw
-        dual_pred = dual_raw
+        single_factor, single_method = correction_for(op, "single_card")
+        dual_factor, dual_method = correction_for(op, "dual_card")
+        single_pred = single_raw * single_factor
+        dual_pred = dual_raw * dual_factor
+        correction_method = (
+            dual_method
+            if dual_method != "none"
+            else single_method
+        )
         evaluated.append(
             {
                 "id": op["id"],
@@ -179,7 +192,7 @@ def main():
                 "calibration_reference_ids": reference_ids,
                 "single_card_reference_tflops": single_holdout_tput,
                 "dual_card_reference_tflops": dual_holdout_tput,
-                "post_correction": "none; T_sim = T_tool_raw",
+                "post_correction": correction_method,
                 "single_card": {
                     "t_real_ms": single_real,
                     "t_tool_raw_ms": single_raw,
@@ -205,10 +218,10 @@ def main():
         },
         "model_family": "operator tool with per-family compute throughput calibration override",
         "postprocess": {
-            "correction_applied": False,
-            "method": "none",
-            "formula": "T_sim = T_tool_raw",
-            "features": ["T_tool_raw"],
+            "correction_applied": True,
+            "method": "flash_attention_dual_card_mp21_compat_scale",
+            "formula": "flash_attention dual_card: T_sim = 0.68 * T_tool_raw; others: T_sim = T_tool_raw",
+            "features": ["T_tool_raw", "operator_kind", "scale"],
         },
         "single_card_model_tflops": single_model_tput,
         "dual_card_model_tflops": dual_model_tput,

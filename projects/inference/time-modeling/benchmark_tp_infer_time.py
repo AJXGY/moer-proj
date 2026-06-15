@@ -9,8 +9,7 @@ from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(ROOT, "../../.."))
-ARTIFACT_ROOT = os.path.join(ROOT, "artifacts")
-DEFAULT_MODEL = os.path.join(REPO_ROOT, "clj-proj", "model", "Meta-Llama-3.1-8B")
+ARTIFACT_ROOT = os.environ.get("MOER_ARTIFACT_ROOT", os.path.join(ROOT, "artifacts"))
 TRAIN_SAMPLES = os.path.join(REPO_ROOT, "projects", "training", "time-modeling", "train_samples.jsonl")
 TOOL_ROOT = os.path.join(REPO_ROOT, "projects", "shared", "train-infer-estimation")
 
@@ -18,6 +17,21 @@ if TOOL_ROOT not in sys.path:
     sys.path.insert(0, TOOL_ROOT)
 
 from mvp_llama_train_runtime import LlamaTrainRuntime  # noqa: E402
+
+
+def default_model_path():
+    candidates = [
+        os.environ.get("MOER_MODEL_PATH"),
+        os.path.join(REPO_ROOT, "clj-proj", "model", "Meta-Llama-3.1-8B"),
+        "/home/o_mabin/moerxiancheng-clj-xyj-proj/clj-proj/model/Meta-Llama-3.1-8B",
+    ]
+    for candidate in candidates:
+        if candidate and os.path.exists(os.path.join(candidate, "config.json")):
+            return candidate
+    return os.path.join(REPO_ROOT, "clj-proj", "model", "Meta-Llama-3.1-8B")
+
+
+DEFAULT_MODEL = default_model_path()
 
 
 def utc_stamp():
@@ -31,6 +45,16 @@ def load_json(path):
 
 def load_configs():
     return load_json(os.path.join(ROOT, "tp_parallel_configs.json"))
+
+
+def config_scope(cfg):
+    return cfg.get("parallel_scope") or ("multi" if int(cfg.get("tensor_parallel_size", 1)) > 1 else "single")
+
+
+def filtered_configs(configs, requested_scope):
+    if requested_scope == "all":
+        return list(configs)
+    return [cfg for cfg in configs if config_scope(cfg) == requested_scope]
 
 
 def detect_backend():
@@ -119,16 +143,28 @@ def infer_iteration(runtime, microbatch_num, global_batch_size):
 
 
 def benchmark_runtime(runtime, microbatch_num, global_batch_size, runs, warmups):
+    device_ids = list(range(max(1, int(runtime.tensor_parallel_size))))
     for _ in range(warmups):
         infer_iteration(runtime, microbatch_num, global_batch_size)
     timings = []
     for _ in range(runs):
-        synchronize(runtime.device_backend, [0, 1])
+        synchronize(runtime.device_backend, device_ids)
         start = time.perf_counter()
         infer_iteration(runtime, microbatch_num, global_batch_size)
-        synchronize(runtime.device_backend, [0, 1])
+        synchronize(runtime.device_backend, device_ids)
         timings.append((time.perf_counter() - start) * 1000.0)
     return stable_summary(timings, runs=runs, warmups=warmups)
+
+
+def synthetic_runs(cfg, runs, warmups):
+    mb = float(cfg["microbatch_num"])
+    tp = float(cfg.get("tensor_parallel_size", 1))
+    base = (42.0 if tp <= 1 else 58.0) + 34.0 * mb + 9.0 * max(0.0, tp - 1.0)
+    vals = [base + x for x in (-1.5, 0.5, -0.4, 1.0, 0.2)[:runs]]
+    return {
+        **stable_summary(vals, runs=runs, warmups=warmups),
+        "profile_source": "synthetic_sample",
+    }
 
 
 def parse_args():
@@ -137,6 +173,17 @@ def parse_args():
     parser.add_argument("--runs-per-config", type=int, default=3)
     parser.add_argument("--warmups", type=int, default=1)
     parser.add_argument("--max-seq-len", type=int, default=8)
+    parser.add_argument(
+        "--parallel-scope",
+        choices=["all", "single", "multi"],
+        default=os.environ.get("MOER_PARALLEL_SCOPE", "all"),
+        help="Run all configs, only single-card configs, or only single-node multi-card configs.",
+    )
+    parser.add_argument(
+        "--force-synthetic",
+        action="store_true",
+        help="Generate synthetic timing samples without loading the model or using accelerators.",
+    )
     return parser.parse_args()
 
 
@@ -147,30 +194,60 @@ def main():
     os.makedirs(artifact_dir, exist_ok=True)
 
     env = detect_backend()
-    if env["backend"] == "cpu" or env["device_count"] < 2:
-        raise RuntimeError("TP inference supplement requires at least two MUSA/CUDA devices")
+    if args.force_synthetic:
+        env = {
+            **env,
+            "backend": "cpu",
+            "device_count": 0,
+            "device_names": [],
+            "mode": "synthetic_sample_tp",
+            "topology": "local",
+        }
+    configs = filtered_configs(load_configs(), args.parallel_scope)
+    if not configs:
+        raise RuntimeError(f"No configs selected for parallel scope {args.parallel_scope!r}")
 
     model_cfg = load_json(os.path.join(args.model_path, "config.json"))
-    runtime = LlamaTrainRuntime(
-        model_path=args.model_path,
-        samples_path=TRAIN_SAMPLES,
-        device_backend=env["backend"],
-        pipeline_parallel_size=1,
-        tensor_parallel_size=2,
-        max_seq_len=args.max_seq_len,
-        adapter_only=False,
-    )
-
     results = []
-    for cfg in load_configs():
-        real = benchmark_runtime(
-            runtime,
-            microbatch_num=int(cfg["microbatch_num"]),
-            global_batch_size=int(cfg["global_batch_size"]),
-            runs=args.runs_per_config,
-            warmups=args.warmups,
-        )
+    skipped_configs = []
+    runtimes = {}
+    for cfg in configs:
+        pp_size = int(cfg.get("pipeline_parallel_size", 1))
+        tp_size = int(cfg.get("tensor_parallel_size", 1))
+        required_devices = max(pp_size, tp_size, 1)
+        if env["backend"] == "cpu":
+            if not args.force_synthetic:
+                skipped_configs.append({**cfg, "reason": "requires MUSA/CUDA device or --force-synthetic"})
+                continue
+            real = synthetic_runs(cfg, runs=args.runs_per_config, warmups=args.warmups)
+        else:
+            if int(env["device_count"]) < required_devices:
+                skipped_configs.append(
+                    {**cfg, "reason": f"requires {required_devices} devices, found {env['device_count']}"}
+                )
+                continue
+            runtime_key = (pp_size, tp_size)
+            if runtime_key not in runtimes:
+                runtimes[runtime_key] = LlamaTrainRuntime(
+                    model_path=args.model_path,
+                    samples_path=TRAIN_SAMPLES,
+                    device_backend=env["backend"],
+                    pipeline_parallel_size=pp_size,
+                    tensor_parallel_size=tp_size,
+                    max_seq_len=args.max_seq_len,
+                    adapter_only=False,
+                )
+            real = benchmark_runtime(
+                runtimes[runtime_key],
+                microbatch_num=int(cfg["microbatch_num"]),
+                global_batch_size=int(cfg["global_batch_size"]),
+                runs=args.runs_per_config,
+                warmups=args.warmups,
+            )
         results.append({**cfg, "real": real})
+
+    if not results:
+        raise RuntimeError("No configs were run; check device count, selected scope, or use --force-synthetic")
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -189,17 +266,21 @@ def main():
             "task_kind": "llama_backbone_probe_inference_tp_supplement",
             "samples_path": TRAIN_SAMPLES,
             "max_seq_len": args.max_seq_len,
-            "tensor_parallel_size": 2,
+            "parallel_scope": args.parallel_scope,
+            "tensor_parallel_sizes": sorted({int(cfg.get("tensor_parallel_size", 1)) for cfg in configs}),
             "runtime_scope": "llama_backbone_forward_with_tp_sharded_head",
-            "note": "Backbone executes on device0; final low-rank/classification head is sharded across two devices to provide a real TP supplement probe.",
+            "note": "Single-card configs run on one device; TP=2 configs shard the low-rank/classification head across two devices.",
         },
         "environment": env,
         "configs": results,
+        "skipped_configs": skipped_configs,
     }
 
     with open(os.path.join(artifact_dir, "tp_benchmark_results.json"), "w", encoding="utf-8") as handle:
         json.dump(payload, handle, ensure_ascii=False, indent=2)
-    with open(os.path.join(ROOT, "latest_tp_artifact.txt"), "w", encoding="utf-8") as handle:
+    latest_path = os.environ.get("MOER_LATEST_TP_ARTIFACT_FILE", os.path.join(ROOT, "latest_tp_artifact.txt"))
+    os.makedirs(os.path.dirname(latest_path), exist_ok=True)
+    with open(latest_path, "w", encoding="utf-8") as handle:
         handle.write(artifact_dir)
     print(f"artifact_dir={artifact_dir}")
 

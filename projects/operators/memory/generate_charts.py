@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T101500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T101500Z"))
 CHART_DIR = os.path.join(ROOT, "charts")
 W, H = 2200, 1400
 DPI = (600, 600)
@@ -55,7 +55,7 @@ def draw_status(model):
     img, draw = canvas("5.2.6 A-F 完成情况")
     rows = [
         ("A", "已完成", "已完成 MUSA 环境配置与服务器联通检查"),
-        ("B", "已完成", "已准备 copy、slice、cat 三类访存算子及多规模数据"),
+        ("B", "已完成", "已准备 concat、data_copy、reshape_transpose、slice_copy 四类访存算子"),
         ("C", "已完成", "已完成单卡与双卡五次实测平均采样"),
         ("D", "已完成", "已建立按算子类别拆分的空间维度模型"),
         ("E", "已完成", "已计算并记录各配置误差值"),

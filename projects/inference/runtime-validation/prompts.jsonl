@@ -1,3 +1,0 @@
-{"id":"prompt-001","prompt":"2+3 等于几？请只输出阿拉伯数字。","expected_contains":["5"]}
-{"id":"prompt-002","prompt":"True 和 False 做逻辑与运算，结果是什么？请只输出 True 或 False。","expected_contains":["False"]}
-{"id":"prompt-003","prompt":"请只输出数字 3，不要输出其他内容。","expected_contains":["3"]}

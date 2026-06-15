@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(ROOT, "../../.."))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T101500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T101500Z"))
 TOOL_ROOT = os.path.join(REPO_ROOT, "projects", "shared", "train-infer-estimation")
 TOOL_ENTRY = os.path.join(TOOL_ROOT, "torch_operator_mvp.py")
 

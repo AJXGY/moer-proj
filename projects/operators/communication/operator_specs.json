@@ -1,58 +1,95 @@
-[
-  {
-    "id": "op_sendrecv_64mb",
-    "name": "Send/Recv RoundTrip 64MB",
-    "kind": "send_recv",
-    "bytes": 67108864,
-    "dtype": "float16"
-  },
-  {
-    "id": "op_sendrecv_128mb",
-    "name": "Send/Recv RoundTrip 128MB",
-    "kind": "send_recv",
-    "bytes": 134217728,
-    "dtype": "float16"
-  },
-  {
-    "id": "op_sendrecv_192mb",
-    "name": "Send/Recv RoundTrip 192MB",
-    "kind": "send_recv",
-    "bytes": 201326592,
-    "dtype": "float16"
-  },
-  {
-    "id": "op_sendrecv_256mb",
-    "name": "Send/Recv RoundTrip 256MB",
-    "kind": "send_recv",
-    "bytes": 268435456,
-    "dtype": "float16"
-  },
-  {
-    "id": "op_allreduce_64mb",
-    "name": "AllReduce 64MB",
-    "kind": "all_reduce",
-    "bytes": 67108864,
-    "dtype": "float16"
-  },
-  {
-    "id": "op_allreduce_128mb",
-    "name": "AllReduce 128MB",
-    "kind": "all_reduce",
-    "bytes": 134217728,
-    "dtype": "float16"
-  },
-  {
-    "id": "op_allreduce_192mb",
-    "name": "AllReduce 192MB",
-    "kind": "all_reduce",
-    "bytes": 201326592,
-    "dtype": "float16"
-  },
-  {
-    "id": "op_allreduce_256mb",
-    "name": "AllReduce 256MB",
-    "kind": "all_reduce",
-    "bytes": 268435456,
-    "dtype": "float16"
-  }
-]
+{
+  "message_sizes_mb": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29
+  ],
+  "operators": [
+    {
+      "kind": "all_gather",
+      "display_name": "all_gather",
+      "dtype": "float16"
+    },
+    {
+      "kind": "all_reduce",
+      "display_name": "all_reduce",
+      "dtype": "float16"
+    },
+    {
+      "kind": "all_to_all",
+      "display_name": "all_to_all",
+      "dtype": "float16"
+    },
+    {
+      "kind": "broadcast",
+      "display_name": "broadcast",
+      "dtype": "float16"
+    },
+    {
+      "kind": "reduce",
+      "display_name": "reduce",
+      "dtype": "float16"
+    },
+    {
+      "kind": "reduce_scatter",
+      "display_name": "reduce_scatter",
+      "dtype": "float16"
+    },
+    {
+      "kind": "send_recv",
+      "display_name": "send_recv",
+      "dtype": "float16"
+    }
+  ],
+  "holdout_message_bytes": 8388608,
+  "calibration_message_bytes": [
+    1048576,
+    2097152,
+    3145728,
+    4194304,
+    5242880,
+    6291456,
+    7340032,
+    8388608,
+    9437184,
+    10485760,
+    12582912,
+    15728640,
+    16777216,
+    19922944,
+    20971520,
+    22020096,
+    23068672,
+    24117248,
+    25165824,
+    26214400,
+    27262976,
+    30408704
+  ]
+}

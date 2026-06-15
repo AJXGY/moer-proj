@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T113500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T113500Z"))
 CHART_DIR = os.path.join(ROOT, "charts")
 W, H = 2200, 1400
 DPI = (600, 600)
@@ -46,7 +46,7 @@ def draw_status(model):
     img, draw = canvas("5.2.9 A-F 完成情况")
     statuses = [
         ("A", "已完成", "已配置 MUSA 环境、双进程 gloo 通信与服务器联通"),
-        ("B", "已完成", "已准备 Send/Recv、AllReduce 的 64MB/128MB/192MB/256MB 测试数据"),
+        ("B", "已完成", "已准备 7 类通信算子与 26 个消息规模测试点"),
         ("C", "已完成", "已在单机两卡上五次运行取均值"),
         ("D", "已完成", "已建立算子级空间维度模型并输出 T_sim"),
         ("E", "已完成", "已计算误差并写入结果文件"),
@@ -119,8 +119,8 @@ def draw_topology(bench):
     draw.text((1420, 500), "CPU Staging Buffer", fill="#0f172a", font=font(34, True))
     draw.line((860, 520, 1340, 520), fill="#f97316", width=18)
     draw.line((1340, 700, 860, 700), fill="#fb7185", width=18)
-    draw.text((930, 470), "gloo send/recv", fill="#9a3412", font=font(30, True))
-    draw.text((940, 740), "gloo all_reduce", fill="#9f1239", font=font(30, True))
+    draw.text((910, 470), "gloo collectives + p2p", fill="#9a3412", font=font(30, True))
+    draw.text((900, 740), "cpu staging + musa sync", fill="#9f1239", font=font(30, True))
     draw.text((180, 930), f"通信实现: {bench['communication_path']}", fill="#334155", font=font(28))
     save(img, os.path.join(CHART_DIR, "topology.png"))
 

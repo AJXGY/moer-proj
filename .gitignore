@@ -36,6 +36,7 @@ clj-proj/model/
 *.pth
 
 # Generated experiment outputs
+results/
 artifacts/
 latest_artifact.txt
 latest_*_artifact.txt

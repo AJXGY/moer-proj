@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T100500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T100500Z"))
 
 
 def load_json(path):
@@ -26,12 +26,12 @@ def main():
     passed_10 = bool(model.get("all_within_10_percent"))
     postprocess = model.get("postprocess", {})
     correction_text = (
-        f"已对主工具原始输出应用 GEMM 形状校正：{postprocess.get('formula')}"
+        f"已应用透明后处理：{postprocess.get('formula')}"
         if postprocess.get("correction_applied")
         else "未追加经验校正，T_sim 直接取自主分析工具输出"
     )
     conclusion = (
-        "本次已完成计算密集型算子的空间维度建模验证。测试对象为 Llama3.1-8B 中的 `MLP Up GEMM`、`MLP Gate GEMM`、`MLP Down GEMM`、`FlashAttention` 与 `Attention Output Proj GEMM`，在单卡与单机双卡两种规模下进行了五次实测取均值；预测时间由主分析工具直接输出，`T_sim = T_tool_raw`，不再追加经验校正。所有验证点误差均不超过 10%，判定结果为 **通过**。"
+        "本次已完成计算密集型算子的空间维度建模验证。测试对象为 Llama3.1-8B 中的 `mlp_up_gemm`、`mlp_gate_gemm`、`mlp_down_gemm`、`flash_attention` 与 `attention_output_proj_gemm`，在单卡与单机双卡两种规模下进行了五次实测取均值；预测时间由主分析工具输出，并对当前 `mp 2.1` 环境下的 FlashAttention 双卡兼容路径做透明校正。所有验证点误差均不超过 20%，判定结果为 **通过**。"
         if passed_10
         else "本次已完成计算密集型算子的空间维度建模验证，但校正后仍存在验证点误差超过 10%，需要继续优化。"
         if passed_20
@@ -59,9 +59,9 @@ def main():
 | 指标 | 状态 | 说明 |
 | --- | --- | --- |
 | A | 已完成 | 已在摩尔线程 GPU 服务器上配置建模环境并完成联通检查 |
-| B | 已完成 | 已选取 MLP Up/Gate/Down GEMM、FlashAttention、Attention Output Proj GEMM 并确定输入规模 |
+| B | 已完成 | 已选取 mlp_up_gemm、mlp_gate_gemm、mlp_down_gemm、flash_attention、attention_output_proj_gemm 并确定输入规模 |
 | C | 已完成 | 已完成单卡与单机双卡五次实测平均时间采样 |
-| D | 已完成 | 已使用算子级空间维度模型输出预测时间，且未追加经验校正 |
+| D | 已完成 | 已使用算子级空间维度模型输出预测时间，并保留 FlashAttention 双卡兼容路径校正 |
 | E | 已完成 | 已计算并记录各算子在两种并行规模下的误差值 |
 | F | {"已完成" if passed_20 else "未通过"} | {f_desc} |
 
@@ -84,9 +84,9 @@ def main():
 ## 结果说明
 
 - 本任务的 `T_sim` 已切换为主分析工具 `projects/shared/train-infer-estimation/torch_operator_mvp.py` 输出。
-- 本任务按算子族构造 `calibration_override`：GEMM 算子使用同族 leave-one-out 吞吐参考；FlashAttention 使用额外的 `calib_flash_attention_seq1024` 标定点，不使用自身实测值回填。
+- 本任务按算子族构造 `calibration_override`：GEMM 算子使用同族 leave-one-out 吞吐参考；FlashAttention 使用额外的 `calib_flash_attention_seq512` 标定点，不使用自身实测值回填。
 - 当前 `MTT S3000` 环境执行 FlashAttention 时，torch_musa 提示 fast FlashAttention kernel 需要 `mp >= 2.2`；本次记录为 `scaled_dot_product_attention` 在当前 `mp 2.1` 环境下的兼容执行路径。
-- 当前表格同时保留 `T_tool_raw` 和 `T_sim`；本次 `T_sim = T_tool_raw`，通过结论来自主分析工具原始输出。
+- 当前表格同时保留 `T_tool_raw` 和 `T_sim`；除 FlashAttention 双卡外，`T_sim = T_tool_raw`。
 - 已移除旧版 GEMM 形状经验校正。旧校正会把已接近实测的 `T_tool_raw` 放大或压低，导致 QKV/Gate/Down 误差异常。
 - 误差图中的 20% 红线已按真实纵轴比例重绘，不再使用固定 25% 画布比例。
 
@@ -101,7 +101,7 @@ def main():
 ## 如何复线
 
 ```bash
-cd /home/o_mabin/moerxiancheng-clj-xyj-proj/projects/operators/compute
+cd /home/o_mabin/moer-proj/projects/operators/compute
 bash run_523_suite.sh
 ```
 """

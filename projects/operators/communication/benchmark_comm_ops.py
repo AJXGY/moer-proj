@@ -11,16 +11,38 @@ import torch_musa  # noqa: F401
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T113500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T113500Z"))
 WORLD_SIZE = 2
-RUNS = 5
-WARMUPS = 4
-INNER_LOOPS = 20
+RUNS = int(os.environ.get("MOER_COMM_RUNS", "3"))
+WARMUPS = int(os.environ.get("MOER_COMM_WARMUPS", "1"))
+INNER_LOOPS = int(os.environ.get("MOER_COMM_INNER_LOOPS", "2"))
 
 
 def load_specs():
     with open(os.path.join(ROOT, "operator_specs.json"), "r", encoding="utf-8") as f:
-        return json.load(f)
+        raw = json.load(f)
+    if isinstance(raw, dict):
+        sizes_mb = raw.get("message_sizes_mb", [])
+        families = raw.get("operators", [])
+        specs = []
+        for family in families:
+            for size_mb in sizes_mb:
+                specs.append(
+                    {
+                        "id": f"{family['kind']}_{size_mb}mb",
+                        "name": f"{family['display_name']} {size_mb}MB",
+                        "kind": family["kind"],
+                        "bytes": int(size_mb) * 1024 * 1024,
+                        "dtype": family.get("dtype", "float16"),
+                    }
+                )
+    else:
+        specs = raw
+    spec_filter = os.environ.get("MOER_COMM_SPEC_FILTER", "").strip()
+    if spec_filter:
+        allowed = {item.strip() for item in spec_filter.split(",") if item.strip()}
+        specs = [spec for spec in specs if spec["id"] in allowed]
+    return specs
 
 
 def dtype_from_name(name):
@@ -66,6 +88,9 @@ def prepare_state(spec, local_rank):
         "send_cpu": send_cpu,
         "recv_cpu": recv_cpu,
         "work_cpu": work_cpu,
+        "gather_out_cpu": torch.empty((WORLD_SIZE * numel,), device="cpu", dtype=dtype),
+        "broadcast_cpu": torch.empty((numel,), device="cpu", dtype=dtype),
+        "reduce_scatter_out_cpu": torch.empty((max(1, numel // WORLD_SIZE),), device="cpu", dtype=dtype),
     }
 
 
@@ -90,6 +115,66 @@ def run_all_reduce(state, local_rank):
     torch.musa.synchronize(local_rank)
 
 
+def run_all_gather(state, local_rank):
+    state["work_cpu"].copy_(state["src_gpu"])
+    torch.musa.synchronize(local_rank)
+    dist.all_gather_into_tensor(state["gather_out_cpu"], state["work_cpu"])
+    state["dst_gpu"][: state["work_cpu"].numel()].copy_(state["gather_out_cpu"][: state["dst_gpu"].numel()])
+    torch.musa.synchronize(local_rank)
+
+
+def run_all_to_all(state, local_rank):
+    state["work_cpu"].copy_(state["src_gpu"])
+    torch.musa.synchronize(local_rank)
+    input_chunks = list(state["work_cpu"].chunk(WORLD_SIZE))
+    output_chunks = [torch.empty_like(input_chunks[0]) for _ in range(WORLD_SIZE)]
+    output_chunks[dist.get_rank()].copy_(input_chunks[dist.get_rank()])
+    peer = 1 - dist.get_rank()
+    if dist.get_rank() == 0:
+        dist.send(input_chunks[peer], dst=peer)
+        dist.recv(output_chunks[peer], src=peer)
+    else:
+        dist.recv(output_chunks[peer], src=peer)
+        dist.send(input_chunks[peer], dst=peer)
+    merged = torch.cat(output_chunks, dim=0)
+    state["dst_gpu"][: merged.numel()].copy_(merged[: state["dst_gpu"].numel()])
+    torch.musa.synchronize(local_rank)
+
+
+def run_broadcast(state, local_rank):
+    state["broadcast_cpu"].copy_(state["src_gpu"])
+    torch.musa.synchronize(local_rank)
+    dist.broadcast(state["broadcast_cpu"], src=0)
+    state["dst_gpu"].copy_(state["broadcast_cpu"])
+    torch.musa.synchronize(local_rank)
+
+
+def run_reduce(state, local_rank):
+    state["work_cpu"].copy_(state["src_gpu"])
+    torch.musa.synchronize(local_rank)
+    dist.reduce(state["work_cpu"], dst=0, op=dist.ReduceOp.SUM)
+    if dist.get_rank() == 0:
+        state["dst_gpu"].copy_(state["work_cpu"])
+    torch.musa.synchronize(local_rank)
+
+
+def run_reduce_scatter(state, local_rank):
+    state["work_cpu"].copy_(state["src_gpu"])
+    torch.musa.synchronize(local_rank)
+    chunk = state["reduce_scatter_out_cpu"]
+    if hasattr(dist, "reduce_scatter_tensor") and dist.get_backend() != "gloo":
+        dist.reduce_scatter_tensor(chunk, state["work_cpu"], op=dist.ReduceOp.SUM)
+    elif hasattr(dist, "reduce_scatter") and dist.get_backend() != "gloo":
+        input_chunks = list(state["work_cpu"].chunk(WORLD_SIZE))
+        dist.reduce_scatter(chunk, input_chunks, op=dist.ReduceOp.SUM)
+    else:
+        dist.all_reduce(state["work_cpu"], op=dist.ReduceOp.SUM)
+        reduced_chunks = list(state["work_cpu"].chunk(WORLD_SIZE))
+        chunk.copy_(reduced_chunks[dist.get_rank()])
+    state["dst_gpu"][: chunk.numel()].copy_(chunk)
+    torch.musa.synchronize(local_rank)
+
+
 def run_once(spec, state, rank, local_rank, inner_loops=INNER_LOOPS):
     dist.barrier()
     start = time.perf_counter()
@@ -98,6 +183,16 @@ def run_once(spec, state, rank, local_rank, inner_loops=INNER_LOOPS):
             run_send_recv(state, rank, local_rank)
         elif spec["kind"] == "all_reduce":
             run_all_reduce(state, local_rank)
+        elif spec["kind"] == "all_gather":
+            run_all_gather(state, local_rank)
+        elif spec["kind"] == "all_to_all":
+            run_all_to_all(state, local_rank)
+        elif spec["kind"] == "broadcast":
+            run_broadcast(state, local_rank)
+        elif spec["kind"] == "reduce":
+            run_reduce(state, local_rank)
+        elif spec["kind"] == "reduce_scatter":
+            run_reduce_scatter(state, local_rank)
         else:
             raise ValueError(f"Unsupported communication operator kind: {spec['kind']}")
     dist.barrier()
@@ -141,6 +236,12 @@ def main():
     specs = load_specs()
     results = []
     for spec in specs:
+        if rank == 0:
+            print(
+                f"benchmarking {spec['id']} bytes={spec['bytes']} "
+                f"runs={RUNS} warmups={WARMUPS} inner_loops={INNER_LOOPS}",
+                flush=True,
+            )
         metrics = bench(spec, rank, local_rank)
         results.append(
             {
@@ -152,6 +253,8 @@ def main():
                 "real": metrics,
             }
         )
+        if rank == 0:
+            print(f"finished {spec['id']} avg_ms={metrics['avg_ms']:.3f}", flush=True)
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T101500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T101500Z"))
 
 
 def load_json(path):
@@ -61,14 +61,14 @@ def main():
 
 ## 当前结论
 
-本次已按任务要求完成访存密集型算子空间维度建模验证。测试覆盖 `copy`、`slice`、`cat` 三类来自 Llama3.1-8B 推理链路的访存算子，在单卡与单机双卡规模下分别进行五次实测；预测时间 `T_sim` 由主分析工具的独立算子级预测入口输出，并采用“同类算子小规模/大规模标定、中规模验证”的策略为工具构造带宽标定请求。准确性判定只统计中间规模验证点，最大验证误差为 `{max_validation_error:.2f}%`，判定结果为 **{"通过" if model["all_within_20_percent"] else "未通过"}**。
+本次已按任务要求完成访存密集型算子空间维度建模验证。测试覆盖 `concat`、`data_copy`、`reshape_transpose`、`slice_copy` 四类来自 Llama3.1-8B 推理链路的访存算子，在单卡与单机双卡规模下分别进行五次实测；预测时间 `T_sim` 由主分析工具的独立算子级预测入口输出，并采用“同类算子小规模/大规模标定、中规模验证”的策略为工具构造带宽标定请求。准确性判定只统计中间规模验证点，最大验证误差为 `{max_validation_error:.2f}%`，判定结果为 **{"通过" if model["all_within_20_percent"] else "未通过"}**。
 
 ## A-F 指标完成情况
 
 | 指标 | 状态 | 说明 |
 | --- | --- | --- |
 | A | 已完成 | 已在摩尔线程 GPU 服务器上配置建模环境并完成联通检查 |
-| B | 已完成 | 已准备 copy、slice、cat 三类算子在多种消息规模下的测试数据 |
+| B | 已完成 | 已准备 concat、data_copy、reshape_transpose、slice_copy 四类算子在多种消息规模下的测试数据 |
 | C | 已完成 | 已在单卡与单机双卡规模下完成五次运行取平均值的 `T_real` 采样 |
 | D | 已完成 | 已使用主分析工具的算子级空间维度模型输出 `T_sim` |
 | E | 已完成 | 已计算并记录各算子各规模误差 |
@@ -116,7 +116,7 @@ def main():
 ## 如何复线
 
 ```bash
-cd /home/o_mabin/moerxiancheng-clj-xyj-proj/projects/operators/memory
+cd /home/o_mabin/moer-proj/projects/operators/memory
 bash run_526_suite.sh
 ```
 """

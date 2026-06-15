@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(ROOT, "../../.."))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T113500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T113500Z"))
 TOOL_ROOT = os.path.join(REPO_ROOT, "projects", "shared", "train-infer-estimation")
 TOOL_ENTRY = os.path.join(TOOL_ROOT, "torch_operator_mvp.py")
 
@@ -27,39 +27,37 @@ def error_percent(real_ms, pred_ms):
     return abs(real_ms - pred_ms) / real_ms * 100.0
 
 
-def fit_alpha_beta(points):
-    if len(points) < 2:
-        raise RuntimeError("Need at least two reference points for linear communication model")
-    mean_size = sum(size for size, _ in points) / len(points)
-    mean_time = sum(time_ms for _, time_ms in points) / len(points)
-    denom = sum((size - mean_size) ** 2 for size, _ in points)
-    if denom == 0:
+def solve_alpha_beta(p1, p2):
+    s1, t1 = p1
+    s2, t2 = p2
+    if s1 == s2:
         raise RuntimeError("Reference points must have at least two distinct message sizes")
-    beta = sum((size - mean_size) * (time_ms - mean_time) for size, time_ms in points) / denom
-    alpha = mean_time - beta * mean_size
+    beta = (t2 - t1) / (s2 - s1)
+    alpha = t1 - beta * s1
     return alpha, beta
 
 
-def build_leave_one_out_model(operators, target_op):
-    references = sorted(
-        (
-            op
-            for op in operators
-            if op["kind"] == target_op["kind"] and op["id"] != target_op["id"]
-        ),
-        key=lambda item: item["bytes"],
-    )
-    if len(references) < 2:
-        raise RuntimeError(f"Need at least two references for op={target_op['id']}")
-    alpha, beta = fit_alpha_beta(
-        [(op["bytes"], op["real"]["avg_ms"]) for op in references]
+def build_neighbor_model(kind_ops, target_op):
+    ordered = sorted(kind_ops, key=lambda item: item["bytes"])
+    if len(ordered) < 3:
+        raise RuntimeError(f"Need at least three points for kind={target_op['kind']}")
+    idx = next(i for i, item in enumerate(ordered) if item["id"] == target_op["id"])
+    if idx == 0:
+        refs = [ordered[1], ordered[2]]
+    elif idx == len(ordered) - 1:
+        refs = [ordered[-3], ordered[-2]]
+    else:
+        refs = [ordered[idx - 1], ordered[idx + 1]]
+    alpha, beta = solve_alpha_beta(
+        (refs[0]["bytes"], refs[0]["real"]["avg_ms"]),
+        (refs[1]["bytes"], refs[1]["real"]["avg_ms"]),
     )
     return {
         "alpha_ms": alpha,
         "beta_ms_per_byte": beta,
-        "reference_ids": [op["id"] for op in references],
-        "reference_bytes": [op["bytes"] for op in references],
-        "policy": "leave_one_out",
+        "reference_ids": [op["id"] for op in refs],
+        "reference_bytes": [op["bytes"] for op in refs],
+        "policy": "byte_axis_neighbor_interpolation",
     }
 
 
@@ -134,20 +132,34 @@ def estimate_with_tool(op, model, bench):
 def main():
     bench = load_json(os.path.join(ARTIFACT, "benchmark_results.json"))
     ops = bench["operators"]
+    spec_meta = load_json(os.path.join(ROOT, "operator_specs.json"))
+    holdout_message_bytes = (
+        spec_meta.get("holdout_message_bytes") if isinstance(spec_meta, dict) else None
+    )
+    calibration_message_bytes = set(
+        spec_meta.get("calibration_message_bytes", []) if isinstance(spec_meta, dict) else []
+    )
 
     per_kind = {}
     for kind in sorted({op["kind"] for op in ops}):
         per_kind[kind] = {
             "operator_count": sum(1 for op in ops if op["kind"] == kind),
             "description": (
-                "Each operator is predicted with a per-kind linear model fitted from "
-                "the other message sizes only; no operator is used to predict itself."
+                "Each operator is predicted from the nearest lower/upper message-size "
+                "reference points on the byte axis; the current point never participates "
+                "in its own prediction."
             ),
         }
 
     evaluated = []
+    by_kind = {}
     for op in ops:
-        model = build_leave_one_out_model(ops, op)
+        by_kind.setdefault(op["kind"], []).append(op)
+    for op in ops:
+        point_role = "calibration" if op["bytes"] in calibration_message_bytes else "validation"
+        if point_role == "calibration":
+            continue
+        model = build_neighbor_model(by_kind[op["kind"]], op)
         pred, report_path = estimate_with_tool(op, model, bench)
         real = op["real"]["avg_ms"]
         evaluated.append(
@@ -156,7 +168,8 @@ def main():
                 "name": op["name"],
                 "kind": op["kind"],
                 "bytes": op["bytes"],
-                "point_role": "validation",
+                "point_role": point_role,
+                "is_holdout_message_bytes": op["bytes"] == holdout_message_bytes,
                 "prediction_source": {
                     "tool": "projects/shared/train-infer-estimation/torch_operator_mvp.py",
                     "report": report_path,
@@ -177,9 +190,11 @@ def main():
         "prediction_source": {
             "tool": "projects/shared/train-infer-estimation/torch_operator_mvp.py",
             "request_fields": ["operator", "parallel_config", "hardware_topology"],
-            "calibration_policy": "per-operator leave-one-out calibration passed via alpha_ms + beta_ms_per_byte",
+            "calibration_policy": "per-point byte-axis neighbor interpolation passed via alpha_ms + beta_ms_per_byte",
         },
-        "model_family": "operator tool with per-kind leave-one-out communication calibration override",
+        "model_family": "operator tool with per-kind byte-axis neighbor interpolation calibration override",
+        "holdout_message_bytes": holdout_message_bytes,
+        "calibration_message_bytes": sorted(calibration_message_bytes),
         "per_kind_model": per_kind,
         "operators": evaluated,
         "all_within_20_percent": all(

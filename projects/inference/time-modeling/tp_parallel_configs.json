@@ -1,7 +1,41 @@
 [
   {
+    "id": "cfg_single_mb1",
+    "name": "Single-card, MB=1",
+    "parallel_scope": "single",
+    "pipeline_parallel_size": 1,
+    "tensor_parallel_size": 1,
+    "microbatch_num": 1,
+    "global_batch_size": 1,
+    "input_tokens": 8,
+    "dtype": "float16"
+  },
+  {
+    "id": "cfg_single_mb2",
+    "name": "Single-card, MB=2",
+    "parallel_scope": "single",
+    "pipeline_parallel_size": 1,
+    "tensor_parallel_size": 1,
+    "microbatch_num": 2,
+    "global_batch_size": 2,
+    "input_tokens": 8,
+    "dtype": "float16"
+  },
+  {
+    "id": "cfg_single_mb4",
+    "name": "Single-card, MB=4",
+    "parallel_scope": "single",
+    "pipeline_parallel_size": 1,
+    "tensor_parallel_size": 1,
+    "microbatch_num": 4,
+    "global_batch_size": 4,
+    "input_tokens": 8,
+    "dtype": "float16"
+  },
+  {
     "id": "cfg_tp2_mb1",
-    "name": "TP=2, MB=1",
+    "name": "Single-node TP=2, MB=1",
+    "parallel_scope": "multi",
     "pipeline_parallel_size": 1,
     "tensor_parallel_size": 2,
     "microbatch_num": 1,
@@ -11,7 +45,8 @@
   },
   {
     "id": "cfg_tp2_mb2",
-    "name": "TP=2, MB=2",
+    "name": "Single-node TP=2, MB=2",
+    "parallel_scope": "multi",
     "pipeline_parallel_size": 1,
     "tensor_parallel_size": 2,
     "microbatch_num": 2,
@@ -21,7 +56,8 @@
   },
   {
     "id": "cfg_tp2_mb4",
-    "name": "TP=2, MB=4",
+    "name": "Single-node TP=2, MB=4",
+    "parallel_scope": "multi",
     "pipeline_parallel_size": 1,
     "tensor_parallel_size": 2,
     "microbatch_num": 4,

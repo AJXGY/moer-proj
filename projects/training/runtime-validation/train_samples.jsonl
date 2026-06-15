@@ -1,6 +1,0 @@
-{"text":"请简要说明摩尔线程 GPU 在大模型训练中的作用。","label":0}
-{"text":"解释为什么多卡训练需要同步梯度。","label":1}
-{"text":"给出一个 LoRA 微调的简单说明。","label":0}
-{"text":"训练任务中的 pipeline parallel 有什么作用？","label":1}
-{"text":"为什么训练脚本需要正确识别摩尔线程设备？","label":0}
-{"text":"说明一次 optimizer step 包含哪些阶段。","label":1}

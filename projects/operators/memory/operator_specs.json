@@ -1,59 +1,8 @@
 [
   {
-    "id": "op_copy_hidden_64mb",
-    "name": "Hidden State Device Copy 64MB",
-    "kind": "copy",
-    "shape": [8, 1024, 4096],
-    "dtype": "float16",
-    "llama_component": "residual.hidden_state_copy"
-  },
-  {
-    "id": "op_copy_hidden_128mb",
-    "name": "Hidden State Device Copy 128MB",
-    "kind": "copy",
-    "shape": [16, 1024, 4096],
-    "dtype": "float16",
-    "llama_component": "residual.hidden_state_copy"
-  },
-  {
-    "id": "op_copy_hidden_256mb",
-    "name": "Hidden State Device Copy 256MB",
-    "kind": "copy",
-    "shape": [32, 1024, 4096],
-    "dtype": "float16",
-    "llama_component": "residual.hidden_state_copy"
-  },
-  {
-    "id": "op_slice_kv_128mb",
-    "name": "KV Cache Slice 128MB",
-    "kind": "slice",
-    "shape": [32, 16, 1024, 128],
-    "slice": [0, 32, 0, 8, 0, 1024, 0, 128],
-    "dtype": "float16",
-    "llama_component": "attention.kv_cache_slice"
-  },
-  {
-    "id": "op_slice_kv_256mb",
-    "name": "KV Cache Slice 256MB",
-    "kind": "slice",
-    "shape": [32, 32, 1024, 128],
-    "slice": [0, 32, 0, 16, 0, 1024, 0, 128],
-    "dtype": "float16",
-    "llama_component": "attention.kv_cache_slice"
-  },
-  {
-    "id": "op_slice_kv_512mb",
-    "name": "KV Cache Slice 512MB",
-    "kind": "slice",
-    "shape": [32, 64, 1024, 128],
-    "slice": [0, 32, 0, 32, 0, 1024, 0, 128],
-    "dtype": "float16",
-    "llama_component": "attention.kv_cache_slice"
-  },
-  {
-    "id": "op_cat_heads_8mb",
-    "name": "Attention Head Concat 8MB",
-    "kind": "cat",
+    "id": "concat_8mb",
+    "name": "concat",
+    "kind": "concat",
     "shape_a": [16, 1024, 128],
     "shape_b": [16, 1024, 128],
     "dim": 0,
@@ -61,9 +10,9 @@
     "llama_component": "attention.head_concat"
   },
   {
-    "id": "op_cat_heads_16mb",
-    "name": "Attention Head Concat 16MB",
-    "kind": "cat",
+    "id": "concat_16mb",
+    "name": "concat",
+    "kind": "concat",
     "shape_a": [32, 1024, 128],
     "shape_b": [32, 1024, 128],
     "dim": 0,
@@ -71,13 +20,94 @@
     "llama_component": "attention.head_concat"
   },
   {
-    "id": "op_cat_heads_32mb",
-    "name": "Attention Head Concat 32MB",
-    "kind": "cat",
+    "id": "concat_32mb",
+    "name": "concat",
+    "kind": "concat",
     "shape_a": [64, 1024, 128],
     "shape_b": [64, 1024, 128],
     "dim": 0,
     "dtype": "float16",
     "llama_component": "attention.head_concat"
+  },
+  {
+    "id": "data_copy_64mb",
+    "name": "data_copy",
+    "kind": "data_copy",
+    "shape": [8, 1024, 4096],
+    "dtype": "float16",
+    "llama_component": "residual.hidden_state_copy"
+  },
+  {
+    "id": "data_copy_128mb",
+    "name": "data_copy",
+    "kind": "data_copy",
+    "shape": [16, 1024, 4096],
+    "dtype": "float16",
+    "llama_component": "residual.hidden_state_copy"
+  },
+  {
+    "id": "data_copy_256mb",
+    "name": "data_copy",
+    "kind": "data_copy",
+    "shape": [32, 1024, 4096],
+    "dtype": "float16",
+    "llama_component": "residual.hidden_state_copy"
+  },
+  {
+    "id": "slice_copy_128mb",
+    "name": "slice_copy",
+    "kind": "slice_copy",
+    "shape": [32, 16, 1024, 128],
+    "slice": [0, 32, 0, 8, 0, 1024, 0, 128],
+    "dtype": "float16",
+    "llama_component": "attention.kv_cache_slice"
+  },
+  {
+    "id": "slice_copy_256mb",
+    "name": "slice_copy",
+    "kind": "slice_copy",
+    "shape": [32, 32, 1024, 128],
+    "slice": [0, 32, 0, 16, 0, 1024, 0, 128],
+    "dtype": "float16",
+    "llama_component": "attention.kv_cache_slice"
+  },
+  {
+    "id": "slice_copy_512mb",
+    "name": "slice_copy",
+    "kind": "slice_copy",
+    "shape": [32, 64, 1024, 128],
+    "slice": [0, 32, 0, 32, 0, 1024, 0, 128],
+    "dtype": "float16",
+    "llama_component": "attention.kv_cache_slice"
+  },
+  {
+    "id": "reshape_transpose_64mb",
+    "name": "reshape_transpose",
+    "kind": "reshape_transpose",
+    "shape": [8, 1024, 4096],
+    "reshape": [8, 1024, 32, 128],
+    "permute": [0, 2, 1, 3],
+    "dtype": "float16",
+    "llama_component": "attention.qkv_reshape_transpose"
+  },
+  {
+    "id": "reshape_transpose_128mb",
+    "name": "reshape_transpose",
+    "kind": "reshape_transpose",
+    "shape": [16, 1024, 4096],
+    "reshape": [16, 1024, 32, 128],
+    "permute": [0, 2, 1, 3],
+    "dtype": "float16",
+    "llama_component": "attention.qkv_reshape_transpose"
+  },
+  {
+    "id": "reshape_transpose_256mb",
+    "name": "reshape_transpose",
+    "kind": "reshape_transpose",
+    "shape": [32, 1024, 4096],
+    "reshape": [32, 1024, 32, 128],
+    "permute": [0, 2, 1, 3],
+    "dtype": "float16",
+    "llama_component": "attention.qkv_reshape_transpose"
   }
 ]

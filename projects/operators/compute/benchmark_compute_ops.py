@@ -11,7 +11,7 @@ import torch_musa  # noqa: F401
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ARTIFACT = os.path.join(ROOT, "artifacts", "20260415T100500Z")
+ARTIFACT = os.environ.get("MOER_ARTIFACT_DIR", os.path.join(ROOT, "artifacts", "20260415T100500Z"))
 
 
 def load_specs():
@@ -164,9 +164,9 @@ def build_attention_calibration_spec(specs):
         if spec["kind"] == "flash_attention":
             return {
                 **spec,
-                "id": "calib_flash_attention_seq2048",
-                "name": "FlashAttention Calibration Seq2048",
-                "seq_len": 1024,
+                "id": "calib_flash_attention_seq512",
+                "name": "calib_flash_attention_seq512",
+                "seq_len": 512,
                 "llama_component": "attention.flash_attention.calibration",
             }
     return None
